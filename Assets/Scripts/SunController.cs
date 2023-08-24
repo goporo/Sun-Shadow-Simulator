@@ -2,32 +2,93 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SunController : MonoBehaviour
 {
     public Transform sunTransform;
-    public SunPositionCalculator SunPositionCalculator;
     private double SunAltitude;
     private double SunAzimuth;
 
-    double latitude = 35.652832;
-    double longitude = 139.839478;
-    public int year = 2023;
-    public int month = 8;
-    public int day = 24;
-    public int hour = 12;
-    public int minute = 0;
-    public int second = 0;
-    public string utc = "9:00";
+    string latitude = "35.652832";
+    string longitude = "139.839478";
+    string year = "2023";
+    string month = "8";
+    string day = "24";
+    string hour = "123";
+    string minute = "00";
+    string second = "00";
+    string utc = "9:00";
 
-    void Start()
+    public TMP_InputField latInput;
+    public TMP_InputField lonInput;
+
+    public TMP_InputField yearInput;
+    public TMP_InputField monthInput;
+    public TMP_InputField dayInput;
+    public TMP_InputField hourInput;
+    public TMP_InputField minuteInput;
+    public TMP_InputField secondInput;
+    public TMP_InputField utcInput;
+    bool isSimulating = false;
+    private IEnumerator StartSimulation()
     {
+        int startHour = int.Parse(hourInput.text);
+        int startMinute = int.Parse(minuteInput.text);
 
+        int targetHour = 23;  // Target hour value (e.g., 23 for end of the day)
+        int targetMinute = 59; // Target minute value
+
+        float animationDuration = 5.0f; // Duration of the animation in seconds
+        float elapsedTime = 0.0f;
+
+        while (elapsedTime < animationDuration)
+        {
+            float t = elapsedTime / animationDuration;
+
+            int totalStartMinutes = startHour * 60 + startMinute;
+            int totalTargetMinutes = targetHour * 60 + targetMinute;
+            int animatedTotalMinutes = Mathf.RoundToInt(Mathf.Lerp(totalStartMinutes, totalTargetMinutes, t));
+
+            int animatedHour = animatedTotalMinutes / 60;
+            int animatedMinute = animatedTotalMinutes % 60;
+
+            hourInput.text = animatedHour.ToString("00");
+            minuteInput.text = animatedMinute.ToString("00");
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        hourInput.text = targetHour.ToString("00");
+        minuteInput.text = targetMinute.ToString("00");
+
+        isSimulating = false;
     }
+
+    public void ToggleSimulation()
+    {
+        if (isSimulating)
+        {
+            StopAllCoroutines();
+            isSimulating = false;
+        }
+        else
+        {
+            hourInput.text = "00";
+            minuteInput.text = "00";
+            secondInput.text = "00";
+            StartCoroutine(StartSimulation());
+            isSimulating = true;
+        }
+    }
+
     void ExecuteSolarComputeExe()
     {
-        string arguments = $"-y {year} -m {month} -d {day} -o {longitude} -a {latitude} -u {utc} -t {hour}:{minute}:{second}";
+        string formattedTime = hour + ":" + minute + ":" + second;
+        string arguments = $"-y {year} -m {month} -d {day} -o {longitude} -a {latitude} -u {utc} -t {formattedTime}";
 
         Process process = new Process();
         process.StartInfo.FileName = "./solar-position-calculator";
@@ -48,9 +109,6 @@ public class SunController : MonoBehaviour
 
         if (parts.Length == 2 && double.TryParse(parts[0], out double altitude) && double.TryParse(parts[1], out double azimuth))
         {
-            UnityEngine.Debug.Log("Parsed Altitude: " + altitude);
-            UnityEngine.Debug.Log("Parsed Azimuth: " + azimuth);
-
             // Store the values in your variables
             SunAltitude = altitude;
             SunAzimuth = azimuth;
@@ -61,13 +119,30 @@ public class SunController : MonoBehaviour
         }
     }
 
+    void Start()
+    {
 
-
+    }
     void Update()
     {
-        ExecuteSolarComputeExe();
-        MoveSun(); // Call MoveSun to update the sun's rotation
+        UpdateSolarDataFromUI();
+    }
 
+    public void UpdateSolarDataFromUI()
+    {
+        latitude = latInput.text;
+        longitude = lonInput.text;
+
+        year = yearInput.text;
+        month = monthInput.text;
+        day = dayInput.text;
+        hour = hourInput.text;
+        minute = minuteInput.text;
+        second = secondInput.text;
+        utc = utcInput.text;
+
+        ExecuteSolarComputeExe();
+        MoveSun();
     }
 
     private Vector3 CalculateSunDirection(double altitude, double azimuth)
@@ -85,9 +160,6 @@ public class SunController : MonoBehaviour
         // Convert angles to Unity's coordinate system
         float unitySunAltitude = (float)SunAltitude + 90f;
         float unitySunAzimuth = (float)SunAzimuth;
-
-        // float unitySunAltitude = 65f + 90f;
-        // float unitySunAzimuth = 188f;
 
 
         // Calculate sun direction based on angles
