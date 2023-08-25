@@ -174,7 +174,7 @@ public class SunController : MonoBehaviour
 
         // Convert angles to Unity's coordinate system
         float unitySunAltitude = (float)SunAltitude + 90f;
-        float unitySunAzimuth = (float)SunAzimuth;
+        float unitySunAzimuth = (float)SunAzimuth + 180f;
 
 
         // Calculate sun direction based on angles
