@@ -9,6 +9,10 @@ using UnityEngine.UI;
 public class SunController : MonoBehaviour
 {
     public Transform sunTransform;
+    public TMP_Text AltitudeText;
+    public TMP_Text AzimuthText;
+    public TMP_Text PillarHeightText;
+    public TMP_Text ShadowLengthText;
     private double SunAltitude;
     private double SunAzimuth;
 
@@ -33,6 +37,7 @@ public class SunController : MonoBehaviour
     public TMP_InputField secondInput;
     public TMP_InputField utcInput;
     bool isSimulating = false;
+    float PillarHeight = 2;
     private IEnumerator StartSimulation()
     {
         int startHour = int.Parse(hourInput.text);
@@ -41,7 +46,7 @@ public class SunController : MonoBehaviour
         int targetHour = 23;  // Target hour value (e.g., 23 for end of the day)
         int targetMinute = 59; // Target minute value
 
-        float animationDuration = 5.0f; // Duration of the animation in seconds
+        float animationDuration = 8.0f; // Duration of the animation in seconds
         float elapsedTime = 0.0f;
 
         while (elapsedTime < animationDuration)
@@ -126,6 +131,16 @@ public class SunController : MonoBehaviour
     void Update()
     {
         UpdateSolarDataFromUI();
+        UpdateUI();
+    }
+    void UpdateUI()
+    {
+        AltitudeText.text = SunAltitude.ToString("0.00") + "°";
+        AzimuthText.text = SunAzimuth.ToString("0.00") + "°";
+        PillarHeightText.text = PillarHeight.ToString("0.00") + "m";
+
+        double shadowLength = Mathf.Max(0, PillarHeight / Mathf.Tan((float)SunAltitude * Mathf.Deg2Rad));
+        ShadowLengthText.text = shadowLength.ToString("0.00") + "m";
     }
 
     public void UpdateSolarDataFromUI()
