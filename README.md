@@ -12,4 +12,4 @@ The level should include:
 
 ❗ Currently this application is built on windows and hasn't been tested in Linux or MacOS and others platforms. So the app may not work at expected, please take that into consideration.
 
-🎮 Demo: https://www.youtube.com/watch?v=HK-oSLz4IOY
+
